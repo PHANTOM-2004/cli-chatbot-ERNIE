@@ -33,7 +33,9 @@ func main() {
 	Rag.SetContextLimit(context_limit)
 
 	if args := os.Args; len(args) == 2 {
-		questionInfo(args[1])
+		input := strings.TrimSpace(args[1])
+		questionInfo(input)
+		Rag.AskQuestion(input)
 		return
 	}
 
@@ -49,6 +51,6 @@ func main() {
 
 		questionInfo(input)
 		Rag.AskQuestion(input)
-    round ++;
+		round++
 	}
 }
