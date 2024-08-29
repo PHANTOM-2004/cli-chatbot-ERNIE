@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-var Rag ERINE_Rag
+var Rag ERNIE_Rag
 
 func getInvalidInput() (input string) {
 	fmt.Println(GetColorFmt("[Input Question]:", ANSI_Blue))

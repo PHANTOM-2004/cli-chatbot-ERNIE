@@ -9,23 +9,23 @@ import (
 
 type ChatHistoryType = []qianfan.ChatCompletionMessage
 
-type ERINE_Rag struct {
+type ERNIE_Rag struct {
 	history     ChatHistoryType
 	context_len int
 	chat        *qianfan.ChatCompletion
 }
 
-func (Rag *ERINE_Rag) SetModel(name string) {
+func (Rag *ERNIE_Rag) SetModel(name string) {
 	Rag.chat = qianfan.NewChatCompletion(
 		qianfan.WithModel(name),
 	)
 }
 
-func (Rag *ERINE_Rag) SetContextLimit(max_round int) {
+func (Rag *ERNIE_Rag) SetContextLimit(max_round int) {
 	Rag.context_len = max_round
 }
 
-func (Rag *ERINE_Rag) recordA(answer string) {
+func (Rag *ERNIE_Rag) recordA(answer string) {
 	Rag.history = append(Rag.history, qianfan.ChatCompletionAssistantMessage(answer))
 	if len(Rag.history) > Rag.context_len {
 		// pop the earlier QA
@@ -33,7 +33,7 @@ func (Rag *ERINE_Rag) recordA(answer string) {
 	}
 }
 
-func (Rag *ERINE_Rag) recordQ(question string) {
+func (Rag *ERNIE_Rag) recordQ(question string) {
 	Rag.history = append(Rag.history, qianfan.ChatCompletionUserMessage(question))
 	if len(Rag.history) > Rag.context_len {
 		// pop the earlier QA
@@ -41,7 +41,7 @@ func (Rag *ERINE_Rag) recordQ(question string) {
 	}
 }
 
-func (Rag *ERINE_Rag) AskQuestion(input string) {
+func (Rag *ERNIE_Rag) AskQuestion(input string) {
 	// now ask
 	Rag.recordQ(input)
   answer := ""

@@ -1,4 +1,4 @@
-# Command Line Tools for ERNIE-4.0-Turbo
+# Command Line Tools for ERNIE
 
 ## Usage
 
