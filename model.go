@@ -22,29 +22,32 @@ func (Rag *ERNIE_Rag) SetModel(name string) {
 }
 
 func (Rag *ERNIE_Rag) SetContextLimit(max_round int) {
+	if max_round&1 != 0 { // when odd
+		max_round += 1
+	}
 	Rag.context_len = max_round
 }
 
 func (Rag *ERNIE_Rag) recordA(answer string) {
 	Rag.history = append(Rag.history, qianfan.ChatCompletionAssistantMessage(answer))
 	if len(Rag.history) > Rag.context_len {
-		// pop the earlier QA
-		Rag.history = Rag.history[1:]
+		panic("Should not reach here")
 	}
 }
 
 func (Rag *ERNIE_Rag) recordQ(question string) {
-	Rag.history = append(Rag.history, qianfan.ChatCompletionUserMessage(question))
-	if len(Rag.history) > Rag.context_len {
+	if len(Rag.history) > 0 && len(Rag.history) >= Rag.context_len {
 		// pop the earlier QA
-		Rag.history = Rag.history[1:]
+		Rag.history = Rag.history[2:] // abandon earlier QA(Q and A)
 	}
+
+	Rag.history = append(Rag.history, qianfan.ChatCompletionUserMessage(question))
 }
 
 func (Rag *ERNIE_Rag) AskQuestion(input string) {
 	// now ask
 	Rag.recordQ(input)
-  answer := ""
+	answer := ""
 
 	request := qianfan.ChatCompletionRequest{
 		Messages:       Rag.history,
@@ -99,5 +102,5 @@ func (Rag *ERNIE_Rag) AskQuestion(input string) {
 		fmt.Println("No reference from Internet")
 	}
 
-  Rag.recordA(answer)
+	Rag.recordA(answer)
 }
