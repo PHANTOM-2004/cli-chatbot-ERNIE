@@ -13,12 +13,14 @@ type ERNIE_Rag struct {
 	history     ChatHistoryType
 	context_len int
 	chat        *qianfan.ChatCompletion
+	total_tks   int
 }
 
 func (Rag *ERNIE_Rag) SetModel(name string) {
 	Rag.chat = qianfan.NewChatCompletion(
 		qianfan.WithModel(name),
 	)
+	Rag.total_tks = 0
 }
 
 func (Rag *ERNIE_Rag) SetContextLimit(max_round int) {
@@ -42,6 +44,10 @@ func (Rag *ERNIE_Rag) recordQ(question string) {
 	}
 
 	Rag.history = append(Rag.history, qianfan.ChatCompletionUserMessage(question))
+}
+
+func (Rag *ERNIE_Rag) ShowTkUsage() {
+	fmt.Printf(GetColorFmt("[total tokens usage]: %d\n", ANSI_Red), Rag.total_tks)
 }
 
 func (Rag *ERNIE_Rag) AskQuestion(input string) {
@@ -89,8 +95,9 @@ func (Rag *ERNIE_Rag) AskQuestion(input string) {
 	}
 
 	// show the answer and information
-	tk_fmt := GetColorFmt(tk_info_fmt, ANSI_Blue)
+	tk_fmt := GetColorFmt(tk_info_fmt, ANSI_Green)
 	fmt.Printf(tk_fmt, prompt_tks, completion_tks, total_tks)
+	Rag.total_tks += total_tks
 
 	// reference list
 	fmt.Println(GetColorFmt("[reference list]:", ANSI_Green))

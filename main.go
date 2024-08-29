@@ -45,6 +45,7 @@ func main() {
 		input := getInvalidInput()
 
 		if strings.HasSuffix(input, ExitSuffix) {
+      Rag.ShowTkUsage()
 			fmt.Println(GetColorFmt("[CHATBOT QUIT]", ANSI_Red))
 			return
 		}
