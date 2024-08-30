@@ -1,4 +1,4 @@
-package main
+package chatbot
 
 import (
 	"context"
@@ -21,9 +21,8 @@ func (Rag *ERNIE_Rag) SetModel(name string) {
 		qianfan.WithModel(name),
 	)
 	Rag.total_tks = 0
-}
 
-func (Rag *ERNIE_Rag) SetContextLimit(max_round int) {
+	max_round := context_limit
 	if max_round&1 != 0 { // when odd
 		max_round += 1
 	}
@@ -67,7 +66,7 @@ func (Rag *ERNIE_Rag) AskQuestion(input string) {
 		&request,
 	)
 
-	fmt.Printf(GetColorFmt("[%s-Answer]:\n", ANSI_Blue), model_name)
+	fmt.Printf(GetColorFmt("[%s-Answer]:\n", ANSI_LBlue), ModelName)
 
 	prompt_tks, completion_tks, total_tks := 0, 0, 0
 	var search_results []qianfan.SearchResult
