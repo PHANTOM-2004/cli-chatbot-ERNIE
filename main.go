@@ -36,6 +36,8 @@ func getInvalidInput() (input string) {
 func main() {
 	// we get the keys from OS enviroment variable
 	Rag.SetModel(chatbot.ModelName)
+  // statistic at end
+	defer Rag.Statistic()
 
 	if args := os.Args; len(args) == 2 {
 		input := strings.TrimSpace(args[1])
@@ -50,8 +52,6 @@ func main() {
 		input := getInvalidInput()
 
 		if strings.HasSuffix(input, chatbot.ExitSuffix) {
-			Rag.ShowTkUsage()
-			fmt.Println(chatbot.GetColorFmt("[CHATBOT QUIT]", chatbot.ANSI_Red))
 			return
 		}
 

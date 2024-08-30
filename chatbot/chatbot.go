@@ -7,16 +7,23 @@ import (
 	"github.com/baidubce/bce-qianfan-sdk/go/qianfan"
 )
 
-type ChatHistoryType = []qianfan.ChatCompletionMessage
+type (
+	ChatHistoryType = []qianfan.ChatCompletionMessage
+	ChatType        = *qianfan.ChatCompletion
+)
 
 type ERNIE_Rag struct {
-	history     ChatHistoryType
+	model_name  string
+	chat        ChatType
 	context_len int
-	chat        *qianfan.ChatCompletion
 	total_tks   int
+	history     ChatHistoryType
 }
 
+var global_logger = NewLogger(1)
+
 func (Rag *ERNIE_Rag) SetModel(name string) {
+	Rag.model_name = name
 	Rag.chat = qianfan.NewChatCompletion(
 		qianfan.WithModel(name),
 	)
@@ -27,6 +34,8 @@ func (Rag *ERNIE_Rag) SetModel(name string) {
 		max_round += 1
 	}
 	Rag.context_len = max_round
+
+	global_logger.LogModelConfig(1, Rag.model_name, Rag.context_len)
 }
 
 func (Rag *ERNIE_Rag) recordA(answer string) {
@@ -34,6 +43,9 @@ func (Rag *ERNIE_Rag) recordA(answer string) {
 	if len(Rag.history) > Rag.context_len {
 		panic("Should not reach here")
 	}
+
+	// logging
+	global_logger.LogA(1, answer, Rag.model_name)
 }
 
 func (Rag *ERNIE_Rag) recordQ(question string) {
@@ -43,10 +55,22 @@ func (Rag *ERNIE_Rag) recordQ(question string) {
 	}
 
 	Rag.history = append(Rag.history, qianfan.ChatCompletionUserMessage(question))
+
+	// logging
+	global_logger.LogA(1, question, Rag.model_name)
 }
 
 func (Rag *ERNIE_Rag) ShowTkUsage() {
 	fmt.Printf(GetColorFmt("[total tokens usage]: %d\n", ANSI_Red), Rag.total_tks)
+}
+
+func (Rag *ERNIE_Rag) Statistic() {
+	Rag.ShowTkUsage()
+	quit_msg := "[CHATBOT QUIT]"
+	fmt.Println(GetColorFmt(quit_msg, ANSI_Red))
+
+	// logging
+	global_logger.LogStatistic(1, Rag.total_tks)
 }
 
 func (Rag *ERNIE_Rag) AskQuestion(input string) {
@@ -94,8 +118,8 @@ func (Rag *ERNIE_Rag) AskQuestion(input string) {
 	}
 
 	// show the answer and information
-	tk_fmt := GetColorFmt(tk_info_fmt, ANSI_Green)
-	fmt.Printf(tk_fmt, prompt_tks, completion_tks, total_tks)
+	tks_output := fmt.Sprintf(tk_info_fmt, prompt_tks, completion_tks, total_tks)
+	fmt.Println("\n" + GetColorFmt(tks_output, ANSI_Green))
 	Rag.total_tks += total_tks
 
 	// reference list
@@ -109,4 +133,6 @@ func (Rag *ERNIE_Rag) AskQuestion(input string) {
 	}
 
 	Rag.recordA(answer)
+	// logging tokens
+	global_logger.Log(*NewLogEntry(1, tks_output))
 }
