@@ -5,7 +5,9 @@ import (
 	"chatbot/chatbot"
 	"fmt"
 	"os"
+	"os/signal"
 	"strings"
+	"syscall"
 )
 
 var Rag chatbot.ERNIE_Rag
@@ -33,10 +35,22 @@ func getInvalidInput() (input string) {
 	return
 }
 
+func init() {
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		<-c
+		// Run Cleanup
+		fmt.Println(chatbot.GetColorFmt("\nGot SIGINT, logging", chatbot.ANSI_Red))
+		Rag.Statistic()
+		os.Exit(1)
+	}()
+}
+
 func main() {
 	// we get the keys from OS enviroment variable
 	Rag.SetModel(chatbot.ModelName)
-  // statistic at end
+	// statistic at end
 	defer Rag.Statistic()
 
 	if args := os.Args; len(args) == 2 {

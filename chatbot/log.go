@@ -55,7 +55,7 @@ func (l *Logger) Log(entry LogEntry) {
 	defer f.Close()
 
 	// now log
-	logwrite := log.New(f, "[Log Time]: ", log.LstdFlags)
+	logwrite := log.New(f, "", log.LstdFlags)
 	logwrite.Println(entry.Message)
 }
 
