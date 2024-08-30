@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 )
 
 type LogEntry struct {
@@ -72,7 +73,7 @@ func (l *Logger) LogA(level int, answer string, model_name string) {
 }
 
 func (l *Logger) LogModelConfig(level int, model_name string, context_limit int) {
-	message := "[Model]: " + model_name + ", [Context Limit]: " + string(context_limit)
+	message := "[Model]: " + model_name + ", [Context Limit]: " + strconv.Itoa(context_limit)
 	entry := NewLogEntry(level, message)
 	l.Log(*entry)
 }

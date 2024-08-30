@@ -123,16 +123,22 @@ func (Rag *ERNIE_Rag) AskQuestion(input string) {
 	Rag.total_tks += total_tks
 
 	// reference list
-	fmt.Println(GetColorFmt("[reference list]:", ANSI_Green))
+	var ref_output string
 	for i := 0; i < len(search_results); i++ {
 		cur := search_results[i]
-		fmt.Printf(ref_info_fmt, cur.Index, cur.Title, cur.URL)
+		ref_output += fmt.Sprintf(ref_info_fmt, cur.Index, cur.Title, cur.URL)
 	}
 	if len(search_results) == 0 {
-		fmt.Println("No reference from Internet")
+		ref_output = "No reference from the Internet\n"
 	}
+
+  // output reference
+	fmt.Println(GetColorFmt("[reference list]:", ANSI_Green))
+	fmt.Print(ref_output)
 
 	Rag.recordA(answer)
 	// logging tokens
 	global_logger.Log(*NewLogEntry(1, tks_output))
+	// logging reference
+	global_logger.Log(*NewLogEntry(1, "[reference list]\n"+ref_output))
 }
