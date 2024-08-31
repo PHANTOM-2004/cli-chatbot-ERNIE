@@ -44,11 +44,13 @@ func (l *Logger) Log(entry LogEntry) {
 		fallback_path := getFilePath(LogFileFallbackPathPrefix, LogFileName)
 		logf_path = fallback_path
 		log.Printf(GetColorFmt("error openning default log file: [%s]; fallback: [%s]", ANSI_Red), logf_path, fallback_path)
+		log.Println(GetColorFmt(err.Error(), ANSI_Red))
 
 		// open again
 		f, err = os.OpenFile(fallback_path, LogFileOpenMode, LogFilePerm)
 		if err != nil {
 			log.Printf(GetColorFmt("error openning fallback log file: [%s]; current entry disabled", ANSI_Red), fallback_path)
+			log.Println(GetColorFmt(err.Error(), ANSI_Red))
 		}
 	}
 
@@ -58,6 +60,7 @@ func (l *Logger) Log(entry LogEntry) {
 	// now log
 	logwrite := log.New(f, "", log.LstdFlags)
 	logwrite.Println(entry.Message)
+	// record the error
 }
 
 func (l *Logger) LogQ(level int, question string) {
@@ -78,8 +81,20 @@ func (l *Logger) LogModelConfig(level int, model_name string, context_limit int)
 	l.Log(*entry)
 }
 
+func (l *Logger) LogExitStatus(level int, err error) {
+	message_fmt := "***CHATBOT EXIT[%s]***\n"
+	var message string
+	if err != nil {
+		message = fmt.Sprintf(message_fmt, "error: "+err.Error())
+	} else {
+		message = fmt.Sprintf(message_fmt, "0")
+	}
+	entry := NewLogEntry(level, message)
+	l.Log(*entry)
+}
+
 func (l *Logger) LogStatistic(level int, token_usage int) {
-	message := fmt.Sprintf("[Tokens Usage]: %d\n***CHATBOT EXIT***\n", token_usage)
+	message := fmt.Sprintf("[Tokens Usage]: %d", token_usage)
 	entry := NewLogEntry(level, message)
 	l.Log(*entry)
 }

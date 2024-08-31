@@ -57,18 +57,29 @@ func (Rag *ERNIE_Rag) recordQ(question string) {
 	Rag.history = append(Rag.history, qianfan.ChatCompletionUserMessage(question))
 
 	// logging
-	global_logger.LogA(1, question, Rag.model_name)
+	global_logger.LogQ(1, question)
 }
 
 func (Rag *ERNIE_Rag) ShowTkUsage() {
-	fmt.Printf(GetColorFmt("[total tokens usage]: %d\n", ANSI_Red), Rag.total_tks)
+	fmt.Printf(GetColorFmt("[total tokens usage]: %d\n", ANSI_Green), Rag.total_tks)
 }
 
-func (Rag *ERNIE_Rag) Statistic() {
-	Rag.ShowTkUsage()
-	quit_msg := "[CHATBOT QUIT]"
-	fmt.Println(GetColorFmt(quit_msg, ANSI_Red))
+func (Rag *ERNIE_Rag) ExitRound(level int, err error) {
+	// show statistic first
+	Rag.statistic()
+	global_logger.LogExitStatus(level, err)
 
+	if err != nil {
+		quit_msg := fmt.Sprintf("[CHATBOT QUIT] %s", err.Error())
+		fmt.Println(GetColorFmt(quit_msg, ANSI_Red))
+	} else {
+		quit_msg := "[CHATBOT QUIT] normally"
+		fmt.Println(GetColorFmt(quit_msg, ANSI_Green))
+	}
+}
+
+func (Rag *ERNIE_Rag) statistic() {
+	Rag.ShowTkUsage()
 	// logging
 	global_logger.LogStatistic(1, Rag.total_tks)
 }
@@ -132,7 +143,7 @@ func (Rag *ERNIE_Rag) AskQuestion(input string) {
 		ref_output = "No reference from the Internet\n"
 	}
 
-  // output reference
+	// output reference
 	fmt.Println(GetColorFmt("[reference list]:", ANSI_Green))
 	fmt.Print(ref_output)
 

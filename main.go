@@ -3,7 +3,9 @@ package main
 import (
 	"bufio"
 	"chatbot/chatbot"
+	"errors"
 	"fmt"
+	"log"
 	"os"
 	"os/signal"
 	"strings"
@@ -17,11 +19,19 @@ func QuestionInfo(input string) {
 	fmt.Println("\"" + input + "\"")
 }
 
-func getInvalidInput() (input string) {
+func getInvalidInput() string {
 	fmt.Println(chatbot.GetColorFmt("[Input Question]:", chatbot.ANSI_LBlue))
 	reader := bufio.NewReader(os.Stdin)
 	for {
-		input, _ = reader.ReadString('\n')
+		input, err := reader.ReadString('\n')
+		// handle with error in input
+		if err != nil {
+			// log information
+			Rag.ExitRound(1, err)
+			// exit the program
+			os.Exit(1)
+		}
+
 		input = strings.TrimSpace(input)
 
 		if strings.HasSuffix(input, chatbot.AbandonSuffix) {
@@ -29,10 +39,11 @@ func getInvalidInput() (input string) {
 			continue
 		}
 
-		break
+		return input
 	}
 
-	return
+	log.Fatal("should not reach here")
+	return ""
 }
 
 func init() {
@@ -41,8 +52,8 @@ func init() {
 	go func() {
 		<-c
 		// Run Cleanup
-		fmt.Println(chatbot.GetColorFmt("\nGot SIGINT, logging", chatbot.ANSI_Red))
-		Rag.Statistic()
+    fmt.Println("")
+		Rag.ExitRound(1, errors.New("SIGINT"))
 		os.Exit(1)
 	}()
 }
@@ -51,7 +62,7 @@ func main() {
 	// we get the keys from OS enviroment variable
 	Rag.SetModel(chatbot.ModelName)
 	// statistic at end
-	defer Rag.Statistic()
+	defer Rag.ExitRound(1, nil)
 
 	if args := os.Args; len(args) == 2 {
 		input := strings.TrimSpace(args[1])
