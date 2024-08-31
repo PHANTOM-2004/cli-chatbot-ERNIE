@@ -4,10 +4,10 @@
 
 ### Input by `stdin`
 
-- Abandon current input: `input + ABANDON`,`input` can be nil
+- Abandon current input: `input + AGAIN`,`input` can be nil
 
 ```text
-介绍一下Go ABANDON
+介绍一下Go AGAIN
 ```
 
 - Exit chatbot: `input + EXIT`, `input` can be nil
