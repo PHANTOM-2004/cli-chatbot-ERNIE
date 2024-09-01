@@ -12,7 +12,7 @@ import (
 	"syscall"
 )
 
-var Rag chatbot.ERNIE_Rag
+var Rag *chatbot.ERNIE_Rag
 
 func QuestionInfo(input string) {
 	fmt.Println(chatbot.GetColorFmt("[Question Asked]:", chatbot.ANSI_LBlue))
@@ -52,19 +52,26 @@ func init() {
 	go func() {
 		<-c
 		// Run Cleanup
-    fmt.Println("")
+		fmt.Println("")
 		Rag.ExitRound(1, errors.New("SIGINT"))
 		os.Exit(1)
 	}()
 }
 
 func main() {
+  // token-count
+	args := os.Args
+	if len(args) >= 2 && args[1] == "--token-count" {
+		chatbot.GetTotalTokensFromLog()
+		return
+	}
+
 	// we get the keys from OS enviroment variable
-	Rag.SetModel(chatbot.ModelName)
+	Rag = chatbot.NewBot(chatbot.ModelName, chatbot.ContextLimit, 1)
 	// statistic at end
 	defer Rag.ExitRound(1, nil)
 
-	if args := os.Args; len(args) == 2 {
+	if len(args) == 2 {
 		input := strings.TrimSpace(args[1])
 		QuestionInfo(input)
 		Rag.AskQuestion(input)

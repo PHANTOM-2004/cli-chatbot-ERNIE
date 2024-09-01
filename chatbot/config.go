@@ -6,6 +6,7 @@ const (
 	ModelName     = "ERNIE-4.0-Turbo-8K"
 	AbandonSuffix = "AGAIN"
 	ExitSuffix    = "QUIT"
+	ContextLimit  = 4
 )
 
 const (
@@ -13,8 +14,6 @@ const (
 		"[total tokens]: %d"
 	ref_info_fmt = "[%d] %s %s\n"
 )
-
-const context_limit = 4
 
 const (
 	LogFilePerm               = 0600
@@ -24,6 +23,6 @@ const (
 	LogFileFallbackPathPrefix = "/home"
 )
 
-func getFilePath(prefix string, name string) string{
-  return prefix + "/" + name
+func getFilePath(prefix string, name string) string {
+	return prefix + "/" + name
 }

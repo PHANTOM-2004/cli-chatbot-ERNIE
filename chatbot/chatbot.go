@@ -3,6 +3,7 @@ package chatbot
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"github.com/baidubce/bce-qianfan-sdk/go/qianfan"
 )
@@ -13,16 +14,35 @@ type (
 )
 
 type ERNIE_Rag struct {
+  // model info
 	model_name  string
-	chat        ChatType
 	context_len int
 	total_tks   int
-	history     ChatHistoryType
+
+  // chat and history
+	chat    ChatType
+	history ChatHistoryType
+
+  // logger
+	logger Logger
 }
 
-var global_logger = NewLogger(1)
+func NewBot(name string, limit int, loglevel int) *ERNIE_Rag {
+	f, err := getLogFileHandler(LogFileOpenMode)
+	if err != nil {
+		err_msg := err.Error() + "; current entry disabled"
+		log.Println(GetColorFmt(err_msg, ANSI_Red))
+	}
 
-func (Rag *ERNIE_Rag) SetModel(name string) {
+	logger := NewLogger(loglevel, f)
+	res := &ERNIE_Rag{logger: *logger}
+
+	res.SetModel(name, limit)
+
+	return res
+}
+
+func (Rag *ERNIE_Rag) SetModel(name string, context_limit int) {
 	Rag.model_name = name
 	Rag.chat = qianfan.NewChatCompletion(
 		qianfan.WithModel(name),
@@ -35,7 +55,7 @@ func (Rag *ERNIE_Rag) SetModel(name string) {
 	}
 	Rag.context_len = max_round
 
-	global_logger.LogModelConfig(1, Rag.model_name, Rag.context_len)
+	Rag.LogModelConfig(1, Rag.model_name, Rag.context_len)
 }
 
 func (Rag *ERNIE_Rag) recordA(answer string) {
@@ -45,7 +65,7 @@ func (Rag *ERNIE_Rag) recordA(answer string) {
 	}
 
 	// logging
-	global_logger.LogA(1, answer, Rag.model_name)
+	Rag.LogA(1, answer, Rag.model_name)
 }
 
 func (Rag *ERNIE_Rag) recordQ(question string) {
@@ -57,7 +77,7 @@ func (Rag *ERNIE_Rag) recordQ(question string) {
 	Rag.history = append(Rag.history, qianfan.ChatCompletionUserMessage(question))
 
 	// logging
-	global_logger.LogQ(1, question)
+	Rag.LogQ(1, question)
 }
 
 func (Rag *ERNIE_Rag) ShowTkUsage() {
@@ -67,7 +87,7 @@ func (Rag *ERNIE_Rag) ShowTkUsage() {
 func (Rag *ERNIE_Rag) ExitRound(level int, err error) {
 	// show statistic first
 	Rag.statistic()
-	global_logger.LogExitStatus(level, err)
+	Rag.LogExitStatus(level, err)
 
 	if err != nil {
 		quit_msg := fmt.Sprintf("[CHATBOT QUIT] %s", err.Error())
@@ -76,12 +96,15 @@ func (Rag *ERNIE_Rag) ExitRound(level int, err error) {
 		quit_msg := "[CHATBOT QUIT] normally"
 		fmt.Println(GetColorFmt(quit_msg, ANSI_Green))
 	}
+
+	// close the log file
+	Rag.logger.Close()
 }
 
 func (Rag *ERNIE_Rag) statistic() {
 	Rag.ShowTkUsage()
 	// logging
-	global_logger.LogStatistic(1, Rag.total_tks)
+	Rag.LogStatistic(1, Rag.total_tks)
 }
 
 func (Rag *ERNIE_Rag) AskQuestion(input string) {
@@ -140,7 +163,7 @@ func (Rag *ERNIE_Rag) AskQuestion(input string) {
 		ref_output += fmt.Sprintf(ref_info_fmt, cur.Index, cur.Title, cur.URL)
 	}
 	if len(search_results) == 0 {
-		ref_output = "No reference from the Internet\n"
+		ref_output = "No reference from the Internet"
 	}
 
 	// output reference
@@ -149,7 +172,7 @@ func (Rag *ERNIE_Rag) AskQuestion(input string) {
 
 	Rag.recordA(answer)
 	// logging tokens
-	global_logger.Log(*NewLogEntry(1, tks_output))
+	Rag.logger.Log(*NewLogEntry(1, tks_output))
 	// logging reference
-	global_logger.Log(*NewLogEntry(1, "[reference list]\n"+ref_output))
+	Rag.logger.Log(*NewLogEntry(1, "[reference list]\n"+ref_output))
 }
